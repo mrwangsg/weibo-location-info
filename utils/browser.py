@@ -51,6 +51,10 @@ def init_browser():
                 options.add_argument('--headless')
                 # 禁用gpu渲染
                 options.add_argument('--disable-gpu')
+                # 禁用GPU程序缓存
+                options.add_argument('--disable-gpu-program-cache')
+                # 禁用3D软件光栅化器的使用
+                options.add_argument('--disable-software-rasterizer')
 
             # 1是加载图片，2是不加载图片
             load_img_flag = int(1) if load_img else int(2)
