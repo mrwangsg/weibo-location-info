@@ -299,8 +299,8 @@ def main(sql_worker: Sqlite3Worker):
                     log_ger.info("后面的数据，已经遍历过，无需再遍历！！！")
                     break
 
-            # 间隔一个小时，收集一次
-            time.sleep(1 * 60 * 60)
+            # 循环间隔时长
+            time.sleep(config.cycle_wait_time)
 
     except Exception as main_ex:
         log_ger.error(traceback.format_exc())
