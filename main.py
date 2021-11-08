@@ -96,7 +96,10 @@ if __name__ == "__main__":
         log_ger.error("数据表初始化失败！")
 
     # 启动图片下载线程
-    Img_Handler(_sql_worker).start_work()
+    img_max_workers = config.img_handler.get('max_workers', int(2))
+    img_thread_name_prefix = config.img_handler.get('thread_name_prefix', 'img_handler')
+    Img_Handler(_sql_worker, max_workers=img_max_workers, thread_name_prefix=img_thread_name_prefix).start_work()
+    log_ger.info("图片下载器，初始化成功！")
 
     # 校验cookie的有效性，没有效可以直接退出程序！
     _cookie = config.wb_cookie
@@ -104,9 +107,10 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     # 初始化线程池
-    max_workers = config.pool_handler.get('max_workers', int(2))
-    thread_name_prefix = config.pool_handler.get('thread_name_prefix', int(2))
-    _pool_handler = Pool_Handler(max_workers, thread_name_prefix, _cookie)
+    pool_max_workers = config.pool_handler.get('max_workers', int(2))
+    pool_thread_name_prefix = config.pool_handler.get('thread_name_prefix', 'pool_handler')
+    _pool_handler = Pool_Handler(pool_max_workers, pool_thread_name_prefix, _cookie)
+    log_ger.info("浏览器任务工作池，初始化成功！")
 
     # 启动任务
     _city_code_list = ['4509', '4401', '1100']

@@ -20,13 +20,20 @@ db_sqlite3 = {
     'ini_sql_path': 'C:\project\weibo-location-info\data\sql\weibo_location.sql',
     'ini_db_path': 'C:\project\weibo-location-info\data\db\weibo_location.db',
 }
+"""
+图片下载配置
+"""
+img_handler = {
+    'max_workers': int(3),
+    'thread_name_prefix': 'img_handler_',
+}
 
 """
 工作线程池配置
 """
 pool_handler = {
-    'max_workers': int(3),
-    'thread_name_prefix': 'weibo_location_info_',
+    'max_workers': int(2),
+    'thread_name_prefix': 'pool_handler_',
 }
 
 """

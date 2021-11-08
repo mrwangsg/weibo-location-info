@@ -5,6 +5,7 @@
 # @File    : img_handler.py
 # @Software: PyCharm
 import os
+import queue
 import random
 import sys
 import threading
@@ -12,6 +13,7 @@ import time
 
 import requests as requests
 import urllib3
+from requests import Session
 from requests.adapters import HTTPAdapter
 
 import config
@@ -32,11 +34,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # 随机获取一个user_agent
 user_agent = config.user_agent[random.randint(0, len(config.user_agent) - 1)]
 
-# 设置会话连接限制
-session = requests.Session()
-session.mount('http://', HTTPAdapter(max_retries=3, pool_maxsize=5))
-session.mount('https://', HTTPAdapter(max_retries=3, pool_maxsize=5))
-
 # 图片下载尺寸, 默认下载尺寸
 all_img_size = {
     '1': 'thumb150',
@@ -50,62 +47,95 @@ default_img_size = all_img_size.get(str(config.download_img_size), '3')
 
 class Img_Handler(threading.Thread):
 
-    def __init__(self, sql_worker: Sqlite3Worker):
+    def __init__(self, sql_worker: Sqlite3Worker, max_workers, thread_name_prefix):
         threading.Thread.__init__(self)
         self.daemon = True
-
         self.sql_worker = sql_worker
+        self.max_workers = max_workers
 
+        # 设置会话连接限制
+        session = requests.Session()
+        session.mount('http://', HTTPAdapter(max_retries=2, pool_maxsize=max_workers * 2))
+        session.mount('https://', HTTPAdapter(max_retries=2, pool_maxsize=max_workers * 2))
+        self.session = session
+
+        # 创建图片存储根目录
         if not os.path.exists(img_dir):
             os.mkdir(img_dir)
-        pass
+
+        # 创建数据缓存队列
+        self.task_queue = queue.Queue(maxsize=100 * max_workers)
+        self.task_work_pool = [Inner_Work(thread_name_prefix + str(_), self.task_queue, self.sql_worker, self.session)
+                               for _ in range(0, max_workers)]
 
     def run(self):
         while True:
             try:
-                ret_flag = download_2_local(self.sql_worker)
-                if ret_flag == int(0):
-                    time.sleep(time_out.m1)
+                if self.task_queue.qsize() <= self.max_workers:
+                    # 查询数据库，获取图片list地址
+                    select_sql = f"""Select id, data_media_img_list, from_info_timestamp, user_info_nick_name, city_code 
+                                        from weibo_location_info where status=0 and is_delete=0 
+                                        order by id asc limit {10 * self.max_workers};"""
+                    result = self.sql_worker.execute(select_sql)
 
-                if ret_flag == int(-1):
-                    time.sleep(time_out.s10)
+                    if result['status'] is False:
+                        log_ger.error(result['err'])
+                        continue
+
+                    if len(result['rows']) == int(0):
+                        continue
+
+                    # 数据一行行塞入队列
+                    for row in result['rows']:
+                        self.task_queue.put(row)
+
             except Exception as ex:
                 log_ger.error(ex)
+
+            finally:
+                # 间隔一秒查询一次
+                time.sleep(time_out.s1)
 
     def start_work(self):
         self.start()
         pass
 
 
-def download_2_local(sql_worker: Sqlite3Worker):
-    # 查询数据库，获取图片list地址
-    select_sql = f"""Select id, data_media_img_list, from_info_timestamp, user_info_nick_name, city_code from weibo_location_info where status=0 and is_delete=0 order by id asc limit 1;"""
-    result = sql_worker.execute(select_sql)
-    if result['status'] is False:
-        log_ger.error(result['err'])
-        return int(-1)
-    if len(result['rows']) == int(0):
-        return int(0)
+class Inner_Work(threading.Thread):
 
-    # 下载图片
-    row = result['rows'][0]
-    data_media_img_list = row[1]
-    if len(data_media_img_list.strip()) > 0:
-        img_url_list = data_media_img_list.split(';')
-        for img_url in img_url_list:
-            if down_img(img_url, row[2], row[3], row[4]) is False:
-                return int(-1)
+    def __init__(self, thread_name, task_queue, sql_worker: Sqlite3Worker, session: Session):
+        threading.Thread.__init__(self)
+        self.daemon = True
+        self.name = thread_name
+        self.task_queue = task_queue
+        self.sql_worker = sql_worker
+        self.session = session
 
-    update_sql = f"""update weibo_location_info set status=1  where id={row[0]} """
-    result = sql_worker.execute(update_sql)
-    if result['status'] is False:
-        log_ger.error(result['err'])
-        return int(-1)
+        # 启动容器
+        self.start()
 
-    return int(1)
+    def run(self):
+        # id, data_media_img_list, from_info_timestamp, user_info_nick_name, city_code
+        for row in iter(self.task_queue.get, None):
+            # 下载图片
+            data_media_img_list = row[1]
+            if len(data_media_img_list.strip()) > 0:
+                img_url_list = data_media_img_list.split(';')
+                for img_url in img_url_list:
+                    if down_img(self.session, img_url, row[2], row[3], row[4]) is False:
+                        # 下载失败时，暂停一会
+                        time.sleep(time_out.s10)
+
+            # 下载成功，更新状态
+            update_sql = f"""update weibo_location_info set status=1  where id={row[0]} """
+            result = self.sql_worker.execute(update_sql)
+            log_ger.info(f'图片下载成功，相关信息：{row}')
+            if result['status'] is False:
+                log_ger.error(result['err'])
+                time.sleep(time_out.s10)
 
 
-def down_img(img_url, timestamp, user_name, city_code):
+def down_img(session: Session, img_url, timestamp, user_name, city_code):
     for _ in all_img_size.values():
         img_url = img_url.replace(_, default_img_size)
 
@@ -138,5 +168,5 @@ if __name__ == "__main__":
     else:
         log_ger.error("数据表初始化失败！")
 
-    img_handler = Img_Handler(_sql_worker)
+    img_handler = Img_Handler(_sql_worker, max_workers=2, thread_name_prefix='down_img_')
     sys.exit(0)

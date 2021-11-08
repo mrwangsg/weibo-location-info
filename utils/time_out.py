@@ -12,6 +12,10 @@ class inner_time_out(object):
         pass
 
     @property
+    def s1(self) -> int:
+        return int(1)
+
+    @property
     def s3(self) -> int:
         return int(3)
 
