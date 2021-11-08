@@ -34,8 +34,8 @@ user_agent = config.user_agent[random.randint(0, len(config.user_agent) - 1)]
 
 # 设置会话连接限制
 session = requests.Session()
-session.mount('http://', HTTPAdapter(max_retries=3, pool_maxsize=3))
-session.mount('https://', HTTPAdapter(max_retries=3, pool_maxsize=3))
+session.mount('http://', HTTPAdapter(max_retries=3, pool_maxsize=5))
+session.mount('https://', HTTPAdapter(max_retries=3, pool_maxsize=5))
 
 # 图片下载尺寸, 默认下载尺寸
 all_img_size = {
@@ -79,7 +79,7 @@ class Img_Handler(threading.Thread):
 
 def download_2_local(sql_worker: Sqlite3Worker):
     # 查询数据库，获取图片list地址
-    select_sql = f"""Select id, data_media_img_list, from_info_timestamp, user_info_nick_name from weibo_location_info where status=0 and is_delete=0 order by id asc limit 1;"""
+    select_sql = f"""Select id, data_media_img_list, from_info_timestamp, user_info_nick_name, city_code from weibo_location_info where status=0 and is_delete=0 order by id asc limit 1;"""
     result = sql_worker.execute(select_sql)
     if result['status'] is False:
         log_ger.error(result['err'])
@@ -93,7 +93,7 @@ def download_2_local(sql_worker: Sqlite3Worker):
     if len(data_media_img_list.strip()) > 0:
         img_url_list = data_media_img_list.split(';')
         for img_url in img_url_list:
-            if down_img(img_url, row[2], row[3]) is False:
+            if down_img(img_url, row[2], row[3], row[4]) is False:
                 return int(-1)
 
     update_sql = f"""update weibo_location_info set status=1  where id={row[0]} """
@@ -105,18 +105,22 @@ def download_2_local(sql_worker: Sqlite3Worker):
     return int(1)
 
 
-def down_img(img_url, timestamp, user_name):
+def down_img(img_url, timestamp, user_name, city_code):
     for _ in all_img_size.values():
         img_url = img_url.replace(_, default_img_size)
 
     file_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime(int(timestamp) / 1000)) + ' ' + user_name + ' ' + \
                 img_url.split('/')[-1]
 
+    # 如果路径不存在，则创建
+    file_path = os.path.join(img_dir, city_code)
+    if not os.path.exists(file_path):
+        os.mkdir(file_path)
+
     headers = {'User_Agent': user_agent}
     result = session.get(img_url, headers=headers, timeout=time_out.s10, verify=False)
-
     if result.status_code == 200:
-        with open(os.path.join(img_dir, file_name), 'wb') as fr:
+        with open(os.path.join(file_path, file_name), 'wb') as fr:
             fr.write(result.content)
             return True
     return False

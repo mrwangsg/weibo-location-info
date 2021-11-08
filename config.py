@@ -51,7 +51,7 @@ user_agent = [
 ]
 
 # 选项1：150；  选项2：360；    选项3：690；    选项4：2000；   选项5：large
-download_img_size = int(4)
+download_img_size = int(5)
 
 # 以秒为单位，每次循环间隔时间。建议一个小时
 cycle_wait_time = int(30 * 60)
