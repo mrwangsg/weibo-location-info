@@ -4,12 +4,29 @@
 # @Author  : sgwang
 # @File    : config.py
 # @Software: PyCharm
+
+"""
+微博账号cookie
+"""
+wb_cookie = {
+    'name': 'SUB',
+    'value': '_2A25Mg7xMDeRhGeNK7FAV9i3IzDSIHXVv-KqErDV8PUNbmtANLWPWkW9NSVqx_3UZ-EbiA4ujmuf_daQUmp0xWxrR',
+}
+
 """
 设置sqlite数据库配置
 """
 db_sqlite3 = {
     'ini_sql_path': 'C:\project\weibo-location-info\data\sql\weibo_location.sql',
     'ini_db_path': 'C:\project\weibo-location-info\data\db\weibo_location.db',
+}
+
+"""
+工作线程池配置
+"""
+pool_handler = {
+    'max_workers': int(2),
+    'thread_name_prefix': 'weibo_location_info_',
 }
 
 """
@@ -34,7 +51,7 @@ user_agent = [
 ]
 
 # 选项1：150；  选项2：360；    选项3：690；    选项4：2000；   选项5：large
-download_img_size = int(5)
+download_img_size = int(4)
 
 # 以秒为单位，每次循环间隔时间。建议一个小时
 cycle_wait_time = int(10 * 60)

@@ -16,14 +16,19 @@ weibo_index_url = 'https://weibo.com/'
     武汉市：https://www.weibo.com/p/1001018008642010000000000
     玉林市：https://www.weibo.com/p/1001018008645090000000000
 """
-pc_city_index_prefix = 'https://www.weibo.com/p/10010180086'
+city_index_prefix = 'https://weibo.com/p/10010180086'
 
 """
 pc城市首页后缀
 """
-common_city_index_suffix = '0000000000'
+city_index_suffix = '0000000000'
 
 """
 登录首页
 """
 weibo_login_index_url = 'https://weibo.com/login'
+
+"""
+个人用户页面
+"""
+weibo_user_index_url = 'https://weibo.com/u/'

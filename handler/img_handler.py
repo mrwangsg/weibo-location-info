@@ -34,8 +34,8 @@ user_agent = config.user_agent[random.randint(0, len(config.user_agent) - 1)]
 
 # 设置会话连接限制
 session = requests.Session()
-session.mount('http://', HTTPAdapter(max_retries=3, pool_maxsize=5))
-session.mount('https://', HTTPAdapter(max_retries=3, pool_maxsize=5))
+session.mount('http://', HTTPAdapter(max_retries=3, pool_maxsize=3))
+session.mount('https://', HTTPAdapter(max_retries=3, pool_maxsize=3))
 
 # 图片下载尺寸, 默认下载尺寸
 all_img_size = {
@@ -68,7 +68,7 @@ class Img_Handler(threading.Thread):
                     time.sleep(time_out.m1)
 
                 if ret_flag == int(-1):
-                    time.sleep(time_out.s3)
+                    time.sleep(time_out.s10)
             except Exception as ex:
                 log_ger.error(ex)
 
@@ -87,15 +87,14 @@ def download_2_local(sql_worker: Sqlite3Worker):
     if len(result['rows']) == int(0):
         return int(0)
 
-    rows = result['rows']
-    for row in rows:
-        # 下载图片
-        data_media_img_list = row[1]
-        if len(data_media_img_list.strip()) > 0:
-            img_url_list = data_media_img_list.split(';')
-            for img_url in img_url_list:
-                if down_img(img_url, row[2], row[3]) is False:
-                    return int(-1)
+    # 下载图片
+    row = result['rows'][0]
+    data_media_img_list = row[1]
+    if len(data_media_img_list.strip()) > 0:
+        img_url_list = data_media_img_list.split(';')
+        for img_url in img_url_list:
+            if down_img(img_url, row[2], row[3]) is False:
+                return int(-1)
 
     update_sql = f"""update weibo_location_info set status=1  where id={row[0]} """
     result = sql_worker.execute(update_sql)

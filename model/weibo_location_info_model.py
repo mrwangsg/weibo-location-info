@@ -14,6 +14,7 @@ class Weibo_Location_Info(object):
 
         self.id = None  # 使用自增Id
         self.weibo_mid = None  # 微博id
+        self.city_code = None  # 城市编码
         self.user_info_nick_name = None  # 用户名
         self.user_info_user_id = None  # 用户id
 
@@ -46,6 +47,12 @@ class Weibo_Location_Info(object):
 
     def get_weibo_mid(self):
         return self.weibo_mid
+
+    def set_city_code(self, city_code):
+        self.city_code = city_code
+
+    def get_city_code(self):
+        return self.city_code
 
     def set_user_info_nick_name(self, user_info_nick_name):
         self.user_info_nick_name = user_info_nick_name

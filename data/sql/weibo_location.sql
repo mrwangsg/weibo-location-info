@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS weibo_location_info
 (
     id                       integer PRIMARY KEY AUTOINCREMENT,
     weibo_mid                varchar(20)  NOT NULL, -- 微博id
+    city_code                varchar(10)  NOT NULL, -- 城市编码
     user_info_nick_name      varchar(100) NOT NULL, -- 用户名
     user_info_user_id        varchar(20)  NOT NULL, -- 用户id
 

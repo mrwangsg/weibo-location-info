@@ -33,7 +33,7 @@ class inner_log(object):
         log_path = os.path.join(logs_dir, log_file)
 
         # 追加写入日志
-        format_str = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', '%Y-%m-%d %H:%M:%S')
+        format_str = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(threadName)s] %(message)s', '%Y-%m-%d %H:%M:%S')
         file_handler = handlers.RotatingFileHandler(filename=log_path, encoding="utf-8")
         file_handler.setFormatter(format_str)
 
