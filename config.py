@@ -10,7 +10,7 @@
 """
 wb_cookie = {
     'name': 'SUB',
-    'value': '_2A25Mg7xMDeRhGeNK7FAV9i3IzDSIHXVv-KqErDV8PUNbmtANLWPWkW9NSVqx_3UZ-EbiA4ujmuf_daQUmp0xWxrR',
+    'value': '_2A25MjUO6DeRhGeNK7FAV9i3IzDSIHXVv-zJyrDV8PUNbmtAKLUL4kW9NSVqx_z9BjEnkmSBxK6beYy7HCnSK5aQO',
 }
 
 """
@@ -25,7 +25,7 @@ db_sqlite3 = {
 工作线程池配置
 """
 pool_handler = {
-    'max_workers': int(2),
+    'max_workers': int(3),
     'thread_name_prefix': 'weibo_location_info_',
 }
 
@@ -54,4 +54,4 @@ user_agent = [
 download_img_size = int(5)
 
 # 以秒为单位，每次循环间隔时间。建议一个小时
-cycle_wait_time = int(30 * 60)
+cycle_wait_time = int(1 * 60 * 60)
