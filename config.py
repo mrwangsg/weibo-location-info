@@ -54,4 +54,4 @@ user_agent = [
 download_img_size = int(4)
 
 # 以秒为单位，每次循环间隔时间。建议一个小时
-cycle_wait_time = int(10 * 60)
+cycle_wait_time = int(30 * 60)

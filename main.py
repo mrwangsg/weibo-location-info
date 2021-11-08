@@ -59,19 +59,19 @@ def check_cookie_active(cookie):
 
 def main(sql_worker: Sqlite3Worker, _pool_handler: Pool_Handler, city_code_list: list):
     try:
-        for city_code in city_code_list:
-            for index in range(1, 28):
-                url = f'{URL.city_index_prefix}{city_code}{URL.city_index_suffix}?since_id=&page={index}'
-                url = f'{URL.city_index_prefix}{city_code}{URL.city_index_suffix}' \
-                      f'?current_page={(index - 1) * 3}&since_id=&page={index}#feedtop'
-                try:
-                    _pool_handler.add_task(sql_worker, city_code, url)
-                except queue.Full as ex:
-                    log_ger.error("队列已满，无法加入队列中！")
-                    time.sleep(time_out.s3)
+        while True:
+            for city_code in city_code_list:
+                for index in range(1, 28):
+                    url = f'{URL.city_index_prefix}{city_code}{URL.city_index_suffix}' \
+                          f'?current_page={(index - 1) * 3}&since_id=&page={index}#feedtop'
+                    try:
+                        _pool_handler.add_task(sql_worker, city_code, url)
+                    except queue.Full as ex:
+                        log_ger.error("队列已满，无法加入队列中！")
+                        time.sleep(time_out.s3)
 
-        # 循环间隔时长
-        time.sleep(config.cycle_wait_time)
+            # 循环间隔时长
+            time.sleep(config.cycle_wait_time)
 
     except Exception as main_ex:
         log_ger.error(traceback.format_exc())
@@ -99,14 +99,14 @@ if __name__ == "__main__":
     Img_Handler(_sql_worker).start_work()
 
     # 校验cookie的有效性，没有效可以直接退出程序！
-    cookie = config.wb_cookie
-    if check_cookie_active(cookie) is False:
+    _cookie = config.wb_cookie
+    if check_cookie_active(_cookie) is False:
         sys.exit(-1)
 
     # 初始化线程池
     max_workers = config.pool_handler.get('max_workers', int(2))
     thread_name_prefix = config.pool_handler.get('thread_name_prefix', int(2))
-    _pool_handler = Pool_Handler(max_workers, thread_name_prefix, cookie)
+    _pool_handler = Pool_Handler(max_workers, thread_name_prefix, _cookie)
 
     # 启动任务
     _city_code_list = ['4509', '4401', '1100']

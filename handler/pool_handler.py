@@ -310,5 +310,6 @@ def do_task(driver: WebDriver, sql_worker: Sqlite3Worker, city_code: str, url):
         return int(0)
 
     except Exception as for_ex:
+        log_ger.error(f'打开页面：{url}，异常！')
         log_ger.error(traceback.format_exc())
         return int(-1)
