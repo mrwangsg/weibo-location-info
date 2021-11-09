@@ -66,7 +66,7 @@ class Img_Handler(threading.Thread):
             if not os.path.exists(img_root):
                 os.mkdir(img_root)
         self.default_img_dir = img_root
-        log_ger.error(f"图片存储目录为：{self.default_img_dir}")
+        log_ger.info(f"图片存储目录为：{self.default_img_dir}")
 
         # 创建数据缓存队列
         self.task_queue = queue.Queue(maxsize=100 * max_workers)
