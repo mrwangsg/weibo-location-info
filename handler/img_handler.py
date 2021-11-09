@@ -10,6 +10,7 @@ import random
 import sys
 import threading
 import time
+import traceback
 
 import requests as requests
 import urllib3
@@ -24,9 +25,8 @@ from utils.log_ger import log_ger
 # 工作根目录
 from utils.time_out import time_out
 
+# 项目根目录
 root_work = WORK_SPACE.ROOT_PATH
-# 图片目录
-img_dir = os.path.join(root_work, 'data', 'img')
 
 # 关闭警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -47,7 +47,7 @@ default_img_size = all_img_size.get(str(config.download_img_size), '3')
 
 class Img_Handler(threading.Thread):
 
-    def __init__(self, sql_worker: Sqlite3Worker, max_workers, thread_name_prefix):
+    def __init__(self, sql_worker: Sqlite3Worker, max_workers, thread_name_prefix, img_root=None):
         threading.Thread.__init__(self)
         self.daemon = True
         self.sql_worker = sql_worker
@@ -60,13 +60,18 @@ class Img_Handler(threading.Thread):
         self.session = session
 
         # 创建图片存储根目录
-        if not os.path.exists(img_dir):
-            os.mkdir(img_dir)
+        if img_root is None:
+            # 默认图片目录
+            img_root = os.path.join(root_work, 'data', 'img')
+            if not os.path.exists(img_root):
+                os.mkdir(img_root)
+        self.default_img_dir = img_root
+        log_ger.error(f"图片存储目录为：{self.default_img_dir}")
 
         # 创建数据缓存队列
         self.task_queue = queue.Queue(maxsize=100 * max_workers)
-        self.task_work_pool = [Inner_Work(thread_name_prefix + str(_), self.task_queue, self.sql_worker, self.session)
-                               for _ in range(0, max_workers)]
+        self.task_work_pool = [Inner_Work(thread_name_prefix + str(_), self.task_queue, self.sql_worker,
+                                          self.session, self.default_img_dir) for _ in range(0, max_workers)]
 
     def run(self):
         while True:
@@ -103,39 +108,45 @@ class Img_Handler(threading.Thread):
 
 class Inner_Work(threading.Thread):
 
-    def __init__(self, thread_name, task_queue, sql_worker: Sqlite3Worker, session: Session):
+    def __init__(self, thread_name, task_queue, sql_worker: Sqlite3Worker, session: Session, default_img_dir: str):
         threading.Thread.__init__(self)
         self.daemon = True
         self.name = thread_name
         self.task_queue = task_queue
         self.sql_worker = sql_worker
         self.session = session
+        self.default_img_dir = default_img_dir
 
         # 启动容器
         self.start()
 
     def run(self):
         # id, data_media_img_list, from_info_timestamp, user_info_nick_name, city_code
+        # 用法：如果队列返回一个None值时，抛出StopIteration异常，即循环结束
         for row in iter(self.task_queue.get, None):
-            # 下载图片
-            data_media_img_list = row[1]
-            if len(data_media_img_list.strip()) > 0:
-                img_url_list = data_media_img_list.split(';')
-                for img_url in img_url_list:
-                    if down_img(self.session, img_url, row[2], row[3], row[4]) is False:
-                        # 下载失败时，暂停一会
-                        time.sleep(time_out.s10)
+            try:
+                # 下载图片
+                data_media_img_list = row[1]
+                if len(data_media_img_list.strip()) > 0:
+                    img_url_list = data_media_img_list.split(';')
+                    for img_url in img_url_list:
+                        if down_img(self.session, self.default_img_dir, img_url, row[2], row[3], row[4]) is False:
+                            # 下载失败时，暂停一会
+                            time.sleep(time_out.s10)
 
-            # 下载成功，更新状态
-            update_sql = f"""update weibo_location_info set status=1  where id={row[0]} """
-            result = self.sql_worker.execute(update_sql)
-            log_ger.info(f'图片下载成功，相关信息：{row}')
-            if result['status'] is False:
-                log_ger.error(result['err'])
-                time.sleep(time_out.s10)
+                # 下载成功，更新状态
+                update_sql = f"""update weibo_location_info set status=1  where id={row[0]} """
+                result = self.sql_worker.execute(update_sql)
+                log_ger.info(f'图片下载成功，相关信息：{row}')
+                if result['status'] is False:
+                    log_ger.error(result['err'])
+                    time.sleep(time_out.s10)
+
+            except Exception as ex:
+                log_ger.error(f'图片下载任务异常！详细信息：{traceback.format_exc()}')
 
 
-def down_img(session: Session, img_url, timestamp, user_name, city_code):
+def down_img(session: Session, default_img_dir, img_url, timestamp, user_name, city_code):
     for _ in all_img_size.values():
         img_url = img_url.replace(_, default_img_size)
 
@@ -143,7 +154,7 @@ def down_img(session: Session, img_url, timestamp, user_name, city_code):
                 img_url.split('/')[-1]
 
     # 如果路径不存在，则创建
-    file_path = os.path.join(img_dir, city_code)
+    file_path = os.path.join(default_img_dir, city_code)
     if not os.path.exists(file_path):
         os.mkdir(file_path)
 

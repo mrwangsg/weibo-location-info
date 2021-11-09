@@ -98,7 +98,8 @@ if __name__ == "__main__":
     # 启动图片下载线程
     img_max_workers = config.img_handler.get('max_workers', int(2))
     img_thread_name_prefix = config.img_handler.get('thread_name_prefix', 'img_handler')
-    Img_Handler(_sql_worker, max_workers=img_max_workers, thread_name_prefix=img_thread_name_prefix).start_work()
+    img_root = config.img_handler.get('img_root', None)
+    Img_Handler(_sql_worker, img_max_workers, img_thread_name_prefix, img_root=img_root).start_work()
     log_ger.info("图片下载器，初始化成功！")
 
     # 校验cookie的有效性，没有效可以直接退出程序！
@@ -113,6 +114,6 @@ if __name__ == "__main__":
     log_ger.info("浏览器任务工作池，初始化成功！")
 
     # 启动任务
-    _city_code_list = ['4509', '4401', '1100']
+    _city_code_list = config.city_code_list
     main(_sql_worker, _pool_handler, _city_code_list)
     sys.exit(0)

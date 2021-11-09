@@ -6,6 +6,10 @@
 # @Software: PyCharm
 
 """
+微博地区编码：https://open.weibo.com/wiki/%E7%9C%81%E4%BB%BD%E5%9F%8E%E5%B8%82%E7%BC%96%E7%A0%81%E8%A1%A8
+"""
+city_code_list = ['4509', '4401']
+"""
 微博账号cookie
 """
 wb_cookie = {
@@ -24,8 +28,9 @@ db_sqlite3 = {
 图片下载配置
 """
 img_handler = {
-    'max_workers': int(3),
+    'max_workers': int(2),
     'thread_name_prefix': 'img_handler_',
+    'img_root': 'E:\weibo_img'
 }
 
 """
@@ -58,7 +63,7 @@ user_agent = [
 ]
 
 # 选项1：150；  选项2：360；    选项3：690；    选项4：2000；   选项5：large
-download_img_size = int(5)
+download_img_size = int(4)
 
 # 以秒为单位，每次循环间隔时间。建议一个小时
-cycle_wait_time = int(1 * 60 * 60)
+cycle_wait_time = int(0.5 * 60 * 60)
