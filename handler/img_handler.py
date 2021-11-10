@@ -80,7 +80,7 @@ class Img_Handler(threading.Thread):
                     # 查询数据库，获取图片list地址
                     select_sql = f"""Select id, data_media_img_list, from_info_timestamp, user_info_nick_name, city_code 
                                         from weibo_location_info where status=0 and is_delete=0 
-                                        order by id asc limit {10 * self.max_workers};"""
+                                        order by from_info_timestamp DESC limit {10 * self.max_workers};"""
                     result = self.sql_worker.execute(select_sql)
 
                     if result['status'] is False:

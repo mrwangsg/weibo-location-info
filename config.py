@@ -14,7 +14,7 @@ city_code_list = ['4509', '4401']
 """
 wb_cookie = {
     'name': 'SUB',
-    'value': '_2A25MjUO6DeRhGeNK7FAV9i3IzDSIHXVv-zJyrDV8PUNbmtAKLUL4kW9NSVqx_z9BjEnkmSBxK6beYy7HCnSK5aQO',
+    'value': '_2A25MjuGODeRhGeNK7FAV9i3IzDSIHXVv-lRGrDV8PUNbmtAKLUHWkW9NSVqx_0UvKn8aAelOlMN3YtDOGtUK7bgu',
 }
 
 """
@@ -37,7 +37,7 @@ img_handler = {
 工作线程池配置
 """
 pool_handler = {
-    'max_workers': int(2),
+    'max_workers': int(3),
     'thread_name_prefix': 'pool_handler_',
 }
 
