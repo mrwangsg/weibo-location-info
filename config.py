@@ -8,13 +8,13 @@
 """
 微博地区编码：https://open.weibo.com/wiki/%E7%9C%81%E4%BB%BD%E5%9F%8E%E5%B8%82%E7%BC%96%E7%A0%81%E8%A1%A8
 """
-city_code_list = ['4509', '4401']
+city_code_list = ['4401', '4509']
 """
 微博账号cookie
 """
 wb_cookie = {
     'name': 'SUB',
-    'value': '_2A25MjuGODeRhGeNK7FAV9i3IzDSIHXVv-lRGrDV8PUNbmtAKLUHWkW9NSVqx_0UvKn8aAelOlMN3YtDOGtUK7bgu',
+    'value': '_2A25MmNduDeRhGeNK7FAV9i3IzDSIHXVv7E-mrDV8PUNbmtANLUnEkW9NSVqx_30_vsn-C5vrtCZ6V3PhNQdyqn1B',
 }
 
 """

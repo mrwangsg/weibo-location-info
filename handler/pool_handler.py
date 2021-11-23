@@ -284,6 +284,7 @@ def do_task(driver: WebDriver, sql_worker: Sqlite3Worker, city_code: str, url):
             for tmp_ in content_info_location_list:
                 weibo_location_url_info = Weibo_Location_Url_Info()
                 weibo_location_url_info.set_weibo_mid(weibo_mid)
+                weibo_location_url_info.set_city_code(city_code)
                 weibo_location_url_info.set_content_info_location_text(tmp_.get('text', ''))
                 weibo_location_url_info.set_content_info_location_url(tmp_.get('url', ''))
                 weibo_location_url_info.set_from_info_date(from_info_date)

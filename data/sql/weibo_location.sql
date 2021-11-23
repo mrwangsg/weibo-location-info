@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS weibo_location_url_info
 (
     id                         integer PRIMARY KEY AUTOINCREMENT,
     weibo_mid                  varchar(20) NOT NULL, -- 微博id(关联使用)
+    city_code                  varchar(10) NOT NULL, -- 城市编码
     content_info_location_text text,                 --微博正文，打卡地址(文字)
     content_info_location_url  text,                 --微博正文，打卡地址(链接)
     from_info_date             varchar(20) NOT NULL, -- 微博文，字符串时间

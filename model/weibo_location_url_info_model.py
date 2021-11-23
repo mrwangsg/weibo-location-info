@@ -14,6 +14,7 @@ class Weibo_Location_Url_Info(object):
 
         self.id = None  # 使用自增Id
         self.weibo_mid = None  # 微博id
+        self.city_code = None  # 城市编码
 
         self.content_info_location_text = None  # 微博正文，打卡地址(文字)
         self.content_info_location_url = None  # 微博正文，打卡地址(链接)
@@ -36,6 +37,12 @@ class Weibo_Location_Url_Info(object):
 
     def get_weibo_mid(self):
         return self.weibo_mid
+
+    def set_city_code(self, city_code):
+        self.city_code = city_code
+
+    def get_city_code(self):
+        return self.city_code
 
     def set_content_info_location_text(self, content_info_location_text):
         self.content_info_location_text = content_info_location_text
